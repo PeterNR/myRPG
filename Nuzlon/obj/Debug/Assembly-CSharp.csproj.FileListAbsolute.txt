@@ -1,0 +1,2 @@
+D:\Jobb\EgneSpill\Unity\Nuzlon\myRPG\Nuzlon\obj\Debug\Assembly-CSharp.csprojAssemblyReference.cache
+D:\Jobb\EgneSpill\Unity\Nuzlon\myRPG\Nuzlon\obj\Debug\Assembly-CSharp.csproj.CoreCompileInputs.cache
