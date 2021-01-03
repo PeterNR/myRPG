@@ -1,0 +1,33 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f5c5678b2e91b284cbc013ae8b561360, type: 3}
+  m_Name: DuckCharmeleon
+  m_EditorClassIdentifier: 
+  name: Duckeon
+  description: A small water lizard with a fiery punch.
+  backsprite: {fileID: 942548444163337341, guid: b0e39a6fa62c150409a2d0695f8b2a4e,
+    type: 3}
+  frontsprite: {fileID: 322720056092444766, guid: b0e39a6fa62c150409a2d0695f8b2a4e,
+    type: 3}
+  speed: 10
+  maxHp: 50
+  attack: 20
+  defense: 20
+  specialAttack: 20
+  specialDefense: 20
+  type1: 0
+  type2: 0
+  learnableMoves:
+  - baseMove: {fileID: 11400000, guid: 99ddaa60797180b48871638438385c77, type: 2}
+    level: 1
+  - baseMove: {fileID: 11400000, guid: ca4a0629b1547874d86c8abcb1579888, type: 2}
+    level: 2
