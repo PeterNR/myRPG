@@ -15,6 +15,8 @@ public class BattleSystem : MonoBehaviour
     BattleDialogueBox _dialogueBox;
 
     private int _currentActionIndex, _currentMoveIndex;
+    private bool _usingVerticalAxis = false, _usingHorizontalAxis = false;
+
 
     private BattleState state;
 
@@ -100,33 +102,44 @@ public class BattleSystem : MonoBehaviour
 
     private void HandleMoveSelection()
     {
-        if (Input.GetAxisRaw("Horizontal") < 0)
+        if (Input.GetAxisRaw("Horizontal") > 0 && !_usingHorizontalAxis)
         {
-            if (_currentActionIndex < _playerUnit.BattleCreature.Moves.Count -1)
+            _usingHorizontalAxis = true;
+            if (_currentMoveIndex < _playerUnit.BattleCreature.Moves.Count -1)
             {
                 _currentMoveIndex++;
             }
         }
-        else if (Input.GetAxisRaw("Horizontal") > 0)
+        else if (Input.GetAxisRaw("Horizontal") < 0 && !_usingHorizontalAxis)
         {
-            if (_currentActionIndex > 0)
+            _usingHorizontalAxis = true;
+            if (_currentMoveIndex > 0)
             {
                 _currentMoveIndex--;
             }
-        }else if (Input.GetAxisRaw("Vertical") < 0)
+        }else if (Input.GetAxisRaw("Vertical") < 0 && !_usingVerticalAxis)
         {
-            if (_currentActionIndex < _playerUnit.BattleCreature.Moves.Count - 2)
+            _usingVerticalAxis = true;
+            if (_currentMoveIndex < _playerUnit.BattleCreature.Moves.Count - 2)
             {
-                _currentMoveIndex+=2;
+                _currentMoveIndex += 2;
             }
         }
-        else if (Input.GetAxisRaw("Vertical") > 0)
+        else if (Input.GetAxisRaw("Vertical") > 0 && !_usingVerticalAxis)
         {
-            if (_currentActionIndex > 1)
+            _usingVerticalAxis = true;
+            if (_currentMoveIndex > 1)
             {
-                _currentMoveIndex-=2;
+                _currentMoveIndex -= 2;
             }
+        }else if(Input.GetAxisRaw("Horizontal") == 0)
+        {
+            _usingHorizontalAxis = false;
+        }else if(Input.GetAxisRaw("Vertical") == 0)
+        {
+            _usingVerticalAxis = false;
         }
+
 
         _dialogueBox.UpdateMoveSelection(_currentMoveIndex, _playerUnit.BattleCreature.Moves[_currentMoveIndex]);
     }

@@ -19,6 +19,7 @@ public class BattleDialogueBox : MonoBehaviour
     private Color _highlightedColor, _regularColor;
 
 
+
     public void SetDialogue(string dialogue)
     {
         _dialogueText.text = dialogue;
@@ -66,11 +67,11 @@ public class BattleDialogueBox : MonoBehaviour
         {
             if(i == selectedMove)
             {
-                _actionText[i].color = _highlightedColor;
+                _moveText[i].color = _highlightedColor;
             }
             else
             {
-                _actionText[i].color = _regularColor;
+                _moveText[i].color = _regularColor;
             }
 
             ppText.text = $"PP {move.PP}/{move.Base.PP}";
