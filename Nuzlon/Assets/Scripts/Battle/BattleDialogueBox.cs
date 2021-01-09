@@ -15,6 +15,8 @@ public class BattleDialogueBox : MonoBehaviour
     private List<Text> _actionText, _moveText;
     [SerializeField]
     private Text ppText, _moveTypeText;
+    [SerializeField]
+    private Color _highlightedColor, _regularColor;
 
 
     public void SetDialogue(string dialogue)
@@ -37,11 +39,57 @@ public class BattleDialogueBox : MonoBehaviour
     }
     public void EnableMoveSelector(bool enabled)
     {
-        _actionSelector.SetActive(enabled);
+        _moveSelector.SetActive(enabled);
         _moveDetails.SetActive(enabled);
     }
     public void EnableActionSelector(bool enabled)
     {
         _actionSelector.SetActive(enabled);
+    }
+    public void UpdateActionSelection(int selectedAction)
+    {
+        for(int i=0; i<_actionText.Count; i++)
+        {
+            if(i == selectedAction)
+            {
+                _actionText[i].color = _highlightedColor;
+            }
+            else
+            {
+                _actionText[i].color = _regularColor;
+            }
+        }
+    }
+    public void UpdateMoveSelection(int selectedMove, Move move)
+    {
+        for(int i=0; i<_actionText.Count; i++)
+        {
+            if(i == selectedMove)
+            {
+                _actionText[i].color = _highlightedColor;
+            }
+            else
+            {
+                _actionText[i].color = _regularColor;
+            }
+
+            ppText.text = $"PP {move.PP}/{move.Base.PP}";
+            _moveTypeText.text = move.Base.Type.ToString();
+        }
+    }
+
+    public void SetMoveNames(List<Move> moves)
+    {
+        for(int i=0; i<_moveText.Count;i++)
+        {
+            if(i<moves.Count)
+            {
+                _moveText[i].text = moves[i].Base.Name;
+            }
+            else
+            {
+                _moveText[i].text = "-";
+            }
+        }
     }
 }

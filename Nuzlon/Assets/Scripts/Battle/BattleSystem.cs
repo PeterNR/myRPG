@@ -14,7 +14,7 @@ public class BattleSystem : MonoBehaviour
     [SerializeField]
     BattleDialogueBox _dialogueBox;
 
-    private int _currentActionIndex;
+    private int _currentActionIndex, _currentMoveIndex;
 
     private BattleState state;
 
@@ -30,6 +30,8 @@ public class BattleSystem : MonoBehaviour
         _enemyUnit.Setup();
         _enemyHUD.SetHUD(_playerUnit.BattleCreature);
 
+        _dialogueBox.SetMoveNames(_playerUnit.BattleCreature.Moves);
+
          yield return _dialogueBox.TypeDialogue($"A wild {_enemyUnit.BattleCreature.Base.name} appeared.");
 
         yield return new WaitForSeconds(1f);
@@ -44,14 +46,27 @@ public class BattleSystem : MonoBehaviour
         _dialogueBox.EnableActionSelector(true);
     }
 
+    private void PlayerMove()
+    {
+        state = BattleState.PlayerMove;
+        _dialogueBox.EnableActionSelector(false);
+        _dialogueBox.EnableDialogueText(false);
+        _dialogueBox.EnableMoveSelector(true);
+    }
+
     private void Update()
     {
         if(state == BattleState.PlayerAction)
         {
-            HandleActionSelection();    
+            HandleActionSelection();
+        }
+        else if (state == BattleState.PlayerMove)
+        {
+            HandleMoveSelection();
         }
     }
 
+    //weird way of choosing actions in battle
     private void HandleActionSelection()
     {
         if(Input.GetAxisRaw("Vertical")<0)
@@ -62,10 +77,57 @@ public class BattleSystem : MonoBehaviour
             }
         }else if (Input.GetAxisRaw("Vertical") > 0)
         {
-            if (_currentActionIndex > 1)
+            if (_currentActionIndex > 0)
             {
                 _currentActionIndex--;
             }
         }
+
+        _dialogueBox.UpdateActionSelection(_currentActionIndex);
+
+        if(Input.GetButtonDown("Jump"))
+        {
+            if(_currentActionIndex == 0)
+            {
+                //fight
+                PlayerMove();
+            }else if(_currentActionIndex == 1)
+            {
+                //run
+            }
+        }
+    }
+
+    private void HandleMoveSelection()
+    {
+        if (Input.GetAxisRaw("Horizontal") < 0)
+        {
+            if (_currentActionIndex < _playerUnit.BattleCreature.Moves.Count -1)
+            {
+                _currentMoveIndex++;
+            }
+        }
+        else if (Input.GetAxisRaw("Horizontal") > 0)
+        {
+            if (_currentActionIndex > 0)
+            {
+                _currentMoveIndex--;
+            }
+        }else if (Input.GetAxisRaw("Vertical") < 0)
+        {
+            if (_currentActionIndex < _playerUnit.BattleCreature.Moves.Count - 2)
+            {
+                _currentMoveIndex+=2;
+            }
+        }
+        else if (Input.GetAxisRaw("Vertical") > 0)
+        {
+            if (_currentActionIndex > 1)
+            {
+                _currentMoveIndex-=2;
+            }
+        }
+
+        _dialogueBox.UpdateMoveSelection(_currentMoveIndex, _playerUnit.BattleCreature.Moves[_currentMoveIndex]);
     }
 }
