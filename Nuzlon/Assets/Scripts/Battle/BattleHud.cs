@@ -11,8 +11,12 @@ public class BattleHud : MonoBehaviour
     private HPBar hpBar;
     //public Slider HpSlider;
 
+    Creature _creature;
+
     public void SetHUD(Creature creature)
     {
+        _creature = creature;
+
         _nameText.text = creature.Base.Name;
         _levelText.text = "Lvl " + creature.Level;
         hpBar.SetHP((float)creature.CurrentHP / creature.MaxHp);
@@ -20,8 +24,9 @@ public class BattleHud : MonoBehaviour
         //HpSlider.value = unit.CurrentHP;
     }
 
-    public void SetHP(int hp)
+    public IEnumerator UpdateHP()
     {
-        //HpSlider.value = hp;
+        yield return hpBar.SetHPSmooth((float)_creature.CurrentHP / _creature.MaxHp);
+        Debug.Log($"{_nameText.text} is at {_creature.CurrentHP}");
     }
 }

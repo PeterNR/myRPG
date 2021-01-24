@@ -442,7 +442,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _dialogueText: {fileID: 23101080}
-  _letterrPerSecond: 30
+  _letterPerSecond: 30
   _actionSelector: {fileID: 84831977}
   _moveSelector: {fileID: 1944069346}
   _moveDetails: {fileID: 1008918492}
@@ -1676,8 +1676,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -140.5, y: 20.57}
-  m_SizeDelta: {x: -306.28714, y: -68.1156}
+  m_AnchoredPosition: {x: -113.79999, y: 20.57}
+  m_SizeDelta: {x: -252.87788, y: -68.1156}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &848003274
 MonoBehaviour:
@@ -1705,7 +1705,7 @@ MonoBehaviour:
     m_BestFit: 0
     m_MinSize: 10
     m_MaxSize: 101
-    m_Alignment: 4
+    m_Alignment: 3
     m_AlignByGeometry: 0
     m_RichText: 1
     m_HorizontalOverflow: 0
@@ -2259,8 +2259,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -140.5, y: -15.600006}
-  m_SizeDelta: {x: -306.28714, y: -68.1156}
+  m_AnchoredPosition: {x: -113.79999, y: -15.600006}
+  m_SizeDelta: {x: -252.87788, y: -68.1156}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1109525878
 MonoBehaviour:
@@ -2288,7 +2288,7 @@ MonoBehaviour:
     m_BestFit: 0
     m_MinSize: 10
     m_MaxSize: 101
-    m_Alignment: 4
+    m_Alignment: 3
     m_AlignByGeometry: 0
     m_RichText: 1
     m_HorizontalOverflow: 0
@@ -2389,6 +2389,7 @@ MonoBehaviour:
   _playerHUD: {fileID: 667427424}
   _enemyHUD: {fileID: 510138058}
   _dialogueBox: {fileID: 208673927}
+  _autoTextDelay: 1
 --- !u!1 &1164108611
 GameObject:
   m_ObjectHideFlags: 0

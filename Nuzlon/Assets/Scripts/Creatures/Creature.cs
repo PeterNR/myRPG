@@ -56,4 +56,29 @@ public class Creature
     {
         get { return Mathf.FloorToInt((Base.SpecialDefense * Level) / 100f) + 5; }
     }
+
+    public bool TakeDamage(Move move, Creature attacker)
+    {
+        float modifiers = Random.Range(0.85f, 1f);
+        float a = (2 * attacker.Level + 10) / 250;
+        float d= a * move.Base.Power * move.Base.Power * ((float)attacker.Attack / Defense) + 2;
+        int damage = Mathf.FloorToInt(d * modifiers);
+        Debug.Log($"Damage is {damage} max hps is {MaxHp}");
+
+        CurrentHP -= damage;
+        if(CurrentHP<=0)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    public Move GetRandomMove()
+    {
+        int r = Random.Range(0, Moves.Count);
+        return Moves[r];
+    }
 }

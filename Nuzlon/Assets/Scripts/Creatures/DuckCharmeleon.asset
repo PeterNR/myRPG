@@ -19,7 +19,7 @@ MonoBehaviour:
   frontsprite: {fileID: 322720056092444766, guid: b0e39a6fa62c150409a2d0695f8b2a4e,
     type: 3}
   speed: 10
-  maxHp: 50
+  maxHp: 25
   attack: 20
   defense: 20
   specialAttack: 20
@@ -31,3 +31,5 @@ MonoBehaviour:
     level: 1
   - baseMove: {fileID: 11400000, guid: ca4a0629b1547874d86c8abcb1579888, type: 2}
     level: 2
+  - baseMove: {fileID: 11400000, guid: 6b814e8197d4aae4a9c5fdd2a258df66, type: 2}
+    level: 3

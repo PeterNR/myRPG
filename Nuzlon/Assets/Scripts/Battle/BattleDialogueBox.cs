@@ -8,7 +8,7 @@ public class BattleDialogueBox : MonoBehaviour
     [SerializeField]
     private Text _dialogueText;
     [SerializeField]
-    private int _letterrPerSecond;
+    private int _letterPerSecond;
     [SerializeField]
     private GameObject _actionSelector, _moveSelector, _moveDetails;
     [SerializeField]
@@ -29,7 +29,7 @@ public class BattleDialogueBox : MonoBehaviour
         _dialogueText.text = "";
         foreach(char letter in dialogue.ToCharArray()){
             _dialogueText.text += letter;
-            yield return new WaitForSeconds(1/_letterrPerSecond);
+            yield return new WaitForSeconds(1/_letterPerSecond);
         }
     }
 
@@ -62,15 +62,15 @@ public class BattleDialogueBox : MonoBehaviour
     }
     public void UpdateMoveSelection(int selectedMove, Move move)
     {
-        for(int i=0; i<_actionText.Count; i++)
+        for(int i=0; i<_moveText.Count; i++)
         {
             if(i == selectedMove)
             {
-                _actionText[i].color = _highlightedColor;
+                _moveText[i].color = _highlightedColor;
             }
             else
             {
-                _actionText[i].color = _regularColor;
+                _moveText[i].color = _regularColor;
             }
 
             ppText.text = $"PP {move.PP}/{move.Base.PP}";

@@ -13,10 +13,14 @@ public class BattleSystem : MonoBehaviour
     private BattleHud _playerHUD, _enemyHUD;
     [SerializeField]
     BattleDialogueBox _dialogueBox;
+    [SerializeField]
+    private float _autoTextDelay;
 
     private int _currentActionIndex, _currentMoveIndex;
 
     private BattleState state;
+
+    private bool _pressedBtn = false;
 
     private void Start()
     {
@@ -28,13 +32,13 @@ public class BattleSystem : MonoBehaviour
         _playerUnit.Setup();
         _playerHUD.SetHUD(_playerUnit.BattleCreature);
         _enemyUnit.Setup();
-        _enemyHUD.SetHUD(_playerUnit.BattleCreature);
+        _enemyHUD.SetHUD(_enemyUnit.BattleCreature);
 
         _dialogueBox.SetMoveNames(_playerUnit.BattleCreature.Moves);
 
          yield return _dialogueBox.TypeDialogue($"A wild {_enemyUnit.BattleCreature.Base.name} appeared.");
 
-        yield return new WaitForSeconds(1f);
+        yield return new WaitForSeconds(_autoTextDelay);
 
         PlayerAction();
     }
@@ -52,6 +56,50 @@ public class BattleSystem : MonoBehaviour
         _dialogueBox.EnableActionSelector(false);
         _dialogueBox.EnableDialogueText(false);
         _dialogueBox.EnableMoveSelector(true);
+    }
+
+    private IEnumerator PerformPlayerMove()
+    {
+        state = BattleState.Busy;
+        Move move = _playerUnit.BattleCreature.Moves[_currentMoveIndex];
+        yield return _dialogueBox.TypeDialogue($"{_playerUnit.BattleCreature.Base.Name } used {move.Base.Name}");
+
+        yield return new WaitForSeconds(_autoTextDelay);
+
+        bool isFainted = _enemyUnit.BattleCreature.TakeDamage(move, _playerUnit.BattleCreature);
+        yield return _enemyHUD.UpdateHP();
+
+        if (isFainted)
+        {
+            yield return _dialogueBox.TypeDialogue($"{_enemyUnit.BattleCreature.Base.Name} used {move.Base.Name}");
+        }
+        else
+        {
+            StartCoroutine(EnemyMove());
+        }
+    }
+
+    private IEnumerator EnemyMove()
+    {
+        state = BattleState.EnemyMove;
+
+        Move move = _enemyUnit.BattleCreature.GetRandomMove();
+
+        yield return _dialogueBox.TypeDialogue($"{_enemyUnit.BattleCreature.Base.Name } used {move.Base.Name}");
+
+        yield return new WaitForSeconds(_autoTextDelay);
+
+        bool isFainted = _playerUnit.BattleCreature.TakeDamage(move, _enemyUnit.BattleCreature);
+        yield return _playerHUD.UpdateHP();
+
+        if (isFainted)
+        {
+            yield return _dialogueBox.TypeDialogue($"{_playerUnit.BattleCreature.Base.Name} used {move.Base.Name}");
+        }
+        else
+        {
+            PlayerAction();
+        }
     }
 
     private void Update()
@@ -100,34 +148,54 @@ public class BattleSystem : MonoBehaviour
 
     private void HandleMoveSelection()
     {
-        if (Input.GetAxisRaw("Horizontal") < 0)
+        if(!_pressedBtn)
         {
-            if (_currentActionIndex < _playerUnit.BattleCreature.Moves.Count -1)
+            if (Input.GetAxisRaw("Horizontal") > 0)
             {
-                _currentMoveIndex++;
+                if (_currentMoveIndex < _playerUnit.BattleCreature.Moves.Count - 1)
+                {
+                    _currentMoveIndex++;
+                    _pressedBtn = true;
+                }
             }
-        }
-        else if (Input.GetAxisRaw("Horizontal") > 0)
-        {
-            if (_currentActionIndex > 0)
+            else if (Input.GetAxisRaw("Horizontal") < 0)
             {
-                _currentMoveIndex--;
+                if (_currentMoveIndex > 0)
+                {
+                    _currentMoveIndex--;
+                    _pressedBtn = true;
+                }
             }
-        }else if (Input.GetAxisRaw("Vertical") < 0)
-        {
-            if (_currentActionIndex < _playerUnit.BattleCreature.Moves.Count - 2)
+            else if (Input.GetAxisRaw("Vertical") < 0)
             {
-                _currentMoveIndex+=2;
+                if (_currentMoveIndex < _playerUnit.BattleCreature.Moves.Count - 2)
+                {
+                    _currentMoveIndex += 2;
+                    _pressedBtn = true;
+                }
             }
-        }
-        else if (Input.GetAxisRaw("Vertical") > 0)
-        {
-            if (_currentActionIndex > 1)
+            else if (Input.GetAxisRaw("Vertical") > 0)
             {
-                _currentMoveIndex-=2;
+                if (_currentMoveIndex > 1)
+                {
+                    _currentMoveIndex -= 2;
+                    _pressedBtn = true;
+                }
             }
+            _dialogueBox.UpdateMoveSelection(_currentMoveIndex, _playerUnit.BattleCreature.Moves[_currentMoveIndex]);
         }
 
-        _dialogueBox.UpdateMoveSelection(_currentMoveIndex, _playerUnit.BattleCreature.Moves[_currentMoveIndex]);
+        if(Input.GetAxisRaw("Vertical") ==0 && Input.GetAxisRaw("Horizontal") == 0)
+        {
+            _pressedBtn = false;
+        }
+
+        if (Input.GetButtonDown("Jump"))
+        {
+            _dialogueBox.EnableMoveSelector(false);
+            _dialogueBox.EnableDialogueText(true);
+            StartCoroutine(PerformPlayerMove());
+        }
+
     }
 }
