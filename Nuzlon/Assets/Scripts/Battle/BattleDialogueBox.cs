@@ -19,6 +19,7 @@ public class BattleDialogueBox : MonoBehaviour
     private Color _highlightedColor, _regularColor;
 
 
+
     public void SetDialogue(string dialogue)
     {
         _dialogueText.text = dialogue;
