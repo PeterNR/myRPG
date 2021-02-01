@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   name: Gear Grind
   description: Used metal gears to squeeze the opponent.
-  type: 4
+  type: 5
   power: 15
   accuracy: 100
   pp: 25

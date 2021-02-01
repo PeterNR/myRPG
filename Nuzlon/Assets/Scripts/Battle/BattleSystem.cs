@@ -13,8 +13,7 @@ public class BattleSystem : MonoBehaviour
     private BattleHud _playerHUD, _enemyHUD;
     [SerializeField]
     BattleDialogueBox _dialogueBox;
-    [SerializeField]
-    private float _autoTextDelay;
+
 
     private int _currentActionIndex, _currentMoveIndex;
 
@@ -37,8 +36,6 @@ public class BattleSystem : MonoBehaviour
         _dialogueBox.SetMoveNames(_playerUnit.BattleCreature.Moves);
 
          yield return _dialogueBox.TypeDialogue($"A wild {_enemyUnit.BattleCreature.Base.name} appeared.");
-
-        yield return new WaitForSeconds(_autoTextDelay);
 
         PlayerAction();
     }
@@ -64,14 +61,19 @@ public class BattleSystem : MonoBehaviour
         Move move = _playerUnit.BattleCreature.Moves[_currentMoveIndex];
         yield return _dialogueBox.TypeDialogue($"{_playerUnit.BattleCreature.Base.Name } used {move.Base.Name}");
 
-        yield return new WaitForSeconds(_autoTextDelay);
+        _playerUnit.PlayAttackAnimation();
+        yield return new WaitForSeconds(1f);
 
-        bool isFainted = _enemyUnit.BattleCreature.TakeDamage(move, _playerUnit.BattleCreature);
+        _enemyUnit.PlayHitAnimation();
+
+        DamageDetails damageDetails = _enemyUnit.BattleCreature.TakeDamage(move, _playerUnit.BattleCreature);
         yield return _enemyHUD.UpdateHP();
+        yield return ShowDamageDetails(damageDetails);
 
-        if (isFainted)
+        if (damageDetails.Fainted)
         {
-            yield return _dialogueBox.TypeDialogue($"{_enemyUnit.BattleCreature.Base.Name} used {move.Base.Name}");
+            yield return _dialogueBox.TypeDialogue($"{_enemyUnit.BattleCreature.Base.Name} fainted");
+            _enemyUnit.PlayFaintAnimation();
         }
         else
         {
@@ -87,18 +89,37 @@ public class BattleSystem : MonoBehaviour
 
         yield return _dialogueBox.TypeDialogue($"{_enemyUnit.BattleCreature.Base.Name } used {move.Base.Name}");
 
-        yield return new WaitForSeconds(_autoTextDelay);
+        _enemyUnit.PlayAttackAnimation();
+        new WaitForSeconds(1f);
 
-        bool isFainted = _playerUnit.BattleCreature.TakeDamage(move, _enemyUnit.BattleCreature);
+        _playerUnit.PlayHitAnimation();
+
+        DamageDetails damageDetails = _playerUnit.BattleCreature.TakeDamage(move, _enemyUnit.BattleCreature);
         yield return _playerHUD.UpdateHP();
+        yield return ShowDamageDetails(damageDetails);
 
-        if (isFainted)
+        if (damageDetails.Fainted)
         {
-            yield return _dialogueBox.TypeDialogue($"{_playerUnit.BattleCreature.Base.Name} used {move.Base.Name}");
+            yield return _dialogueBox.TypeDialogue($"{_playerUnit.BattleCreature.Base.Name} fainted");
+            _playerUnit.PlayFaintAnimation();
         }
         else
         {
             PlayerAction();
+        }
+    }
+
+    IEnumerator ShowDamageDetails(DamageDetails damageDetails)
+    {
+        if(damageDetails.TypeEffect>1)
+        {
+            yield return _dialogueBox.TypeDialogue("It's extra damaging");
+        }else if(damageDetails.TypeEffect == 0 )
+        {
+            yield return _dialogueBox.TypeDialogue("It's not damaging at all");
+        }else if(damageDetails.TypeEffect < 1)
+        {
+            yield return _dialogueBox.TypeDialogue("It's not very damaging");
         }
     }
 

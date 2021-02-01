@@ -10,6 +10,8 @@ public class BattleDialogueBox : MonoBehaviour
     [SerializeField]
     private int _letterPerSecond;
     [SerializeField]
+    private float _autoTextDelay;
+    [SerializeField]
     private GameObject _actionSelector, _moveSelector, _moveDetails;
     [SerializeField]
     private List<Text> _actionText, _moveText;
@@ -30,8 +32,9 @@ public class BattleDialogueBox : MonoBehaviour
         _dialogueText.text = "";
         foreach(char letter in dialogue.ToCharArray()){
             _dialogueText.text += letter;
-            yield return new WaitForSeconds(1/_letterPerSecond);
+            yield return new WaitForSeconds(1f/_letterPerSecond);
         }
+        yield return new WaitForSeconds(_autoTextDelay);
     }
 
     public void EnableDialogueText(bool enabled)

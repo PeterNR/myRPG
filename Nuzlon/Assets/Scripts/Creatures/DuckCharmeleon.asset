@@ -18,13 +18,13 @@ MonoBehaviour:
     type: 3}
   frontsprite: {fileID: 322720056092444766, guid: b0e39a6fa62c150409a2d0695f8b2a4e,
     type: 3}
-  speed: 10
-  maxHp: 25
-  attack: 20
-  defense: 20
-  specialAttack: 20
-  specialDefense: 20
-  type1: 0
+  speed: 45
+  maxHp: 45
+  attack: 49
+  defense: 49
+  specialAttack: 65
+  specialDefense: 65
+  type1: 2
   type2: 0
   learnableMoves:
   - baseMove: {fileID: 11400000, guid: 99ddaa60797180b48871638438385c77, type: 2}

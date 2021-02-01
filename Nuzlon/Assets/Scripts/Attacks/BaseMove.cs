@@ -13,7 +13,7 @@ public class BaseMove : ScriptableObject
     private string description;
 
     [SerializeField]
-    private Type type;
+    private CreatureType type;
     [SerializeField]
     private int power, accuracy, pp;
 
@@ -25,7 +25,7 @@ public class BaseMove : ScriptableObject
     {
         get { return description; }
     }
-    public Type Type
+    public CreatureType Type
     {
         get { return type; }
     }

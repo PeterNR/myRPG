@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   name: Corrosive Beam
   description: Shoots a beam of corrosive acid.
-  type: 0
+  type: 6
   power: 50
   accuracy: 100
   pp: 15

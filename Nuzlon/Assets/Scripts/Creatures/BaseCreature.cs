@@ -3,15 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 
-public enum Type
-{
-    fire,
-    water,
-    ground,
-    wind,
-    tech,
-    acid
-}
+
 
 [CreateAssetMenu(fileName = "Nuzlon", menuName = "Nuzlon/Create new creature")]
 
@@ -30,7 +22,7 @@ public class BaseCreature : ScriptableObject
     private int speed, maxHp, attack, defense, specialAttack, specialDefense;
 
     [SerializeField]
-    Type type1, type2;
+    CreatureType type1, type2;
     [SerializeField]
     private List<LearnableMove> learnableMoves = new List<LearnableMove>();
 
@@ -76,11 +68,11 @@ public class BaseCreature : ScriptableObject
     {
         get { return specialDefense; }
     }
-    public Type Type1
+    public CreatureType Type1
     {
         get { return type1; }
     }
-    public Type Type2
+    public CreatureType Type2
     {
         get { return type2; }
     }
@@ -105,5 +97,44 @@ public class LearnableMove
     public int Level
     {
         get { return level; }
+    }
+}
+
+public enum CreatureType
+{
+    none,
+    Fire,
+    Water,
+    Earth,
+    Air,
+    Tech,
+    Acid
+}
+
+public class TypeChart
+{
+    static float[][] chart =
+    {
+        //                    fire/water/earth/air  /tech/acid 
+       /*fire*/ new float[]   {0.5f, 0f, 0.5f, 1f,   2f,   2f},
+       /*water*/ new float[]  {2f,   1f, 0.5f, 1f,   2f,   0.5f},
+       /*earth*/ new float[]  {1f,   0f, 1f,   0.5f, 0.5f, 1f},
+       /*air*/ new float[]    {0.5f, 2f, 0.5f, 0.5f, 0f,   0,5f},
+       /*tech*/ new float[]   {0.5f, 1f, 2f,   2f,   2f,   0f},
+       /*acid*/ new float[]   {0f,   2f, 2f,   0f,   2f,   0.5f}
+
+    };
+
+    public static float GetEffectiveness (CreatureType attackType, CreatureType defenseType)
+    {
+        if(attackType == CreatureType.none || defenseType == CreatureType.none)
+        {
+            return 1f;
+        }
+
+        int row = (int)attackType - 1;
+        int col = (int)defenseType - 1;
+
+        return chart[row][col];
     }
 }

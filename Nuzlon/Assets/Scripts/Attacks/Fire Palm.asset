@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   name: Fire Palm
   description: Hits the opponent with a heated open palm
-  type: 0
+  type: 1
   power: 30
   accuracy: 100
   pp: 25

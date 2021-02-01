@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   name: Wave
   description: Creates a small wave of water to attack the opponent
-  type: 1
-  power: 25
+  type: 2
+  power: 20
   accuracy: 100
   pp: 25
