@@ -2,18 +2,22 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Creature 
+[System.Serializable]
+public class Nuzlon 
 {
-    public BaseCreature Base { get; set; }
-    public int Level { get; set; }
+    [SerializeField]
+    private BaseNuzlon _base;
+    [SerializeField]
+    private int _level;
+
+    public BaseNuzlon Base { get { return _base; } }
+    public int Level { get { return _level; } }
 
     public int CurrentHP { get; set; }
     public List<Move> Moves { get; set; }
 
-    public Creature(BaseCreature cBase, int cLevel)
+    public void Initialize()
     {
-        Base = cBase;
-        Level = cLevel;
         CurrentHP = MaxHp;
 
         Moves = new List<Move>();
@@ -57,22 +61,24 @@ public class Creature
         get { return Mathf.FloorToInt((Base.SpecialDefense * Level) / 100f) + 5; }
     }
 
-    public DamageDetails TakeDamage(Move move, Creature attacker)
+    public DamageDetails TakeDamage(Move move, Nuzlon attacker)
     {
         //this is the damage magic. This is where you must look at the numbers to see how much damage moves should do
         float typeEffect = TypeChart.GetEffectiveness(move.Base.Type, this.Base.Type1) * TypeChart.GetEffectiveness(move.Base.Type, this.Base.Type2);
 
         DamageDetails details = new DamageDetails()
         {
-            Fainted = false,
-            TypeEffect = typeEffect
+            TypeEffect = typeEffect,
+            Fainted = false
         };
+
+        float attack = (move.Base.IsRanged) ? attacker.SpecialAttack : attacker.Attack;
+        float defense = (move.Base.IsRanged) ? SpecialDefense : Defense;
 
         float modifiers = Random.Range(0.85f, 1f) * typeEffect;
         float a = (2f * attacker.Level + 10f) / 50f;
-        float d= a * move.Base.Power  * ((float)attacker.Attack / Defense) + 2f;
+        float d= a * move.Base.Power  * (attack / defense) + 2f;
         int damage = Mathf.FloorToInt(d * modifiers);
-        Debug.Log($"Damage is {damage} max hps is {MaxHp}");
 
         CurrentHP -= damage;
         if(CurrentHP<=0)

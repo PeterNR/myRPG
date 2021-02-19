@@ -13,9 +13,11 @@ public class BaseMove : ScriptableObject
     private string description;
 
     [SerializeField]
-    private CreatureType type;
+    private NuzlonType type;
     [SerializeField]
     private int power, accuracy, pp;
+    [SerializeField]
+    private bool isRanged;
 
     public string Name
     {
@@ -25,7 +27,7 @@ public class BaseMove : ScriptableObject
     {
         get { return description; }
     }
-    public CreatureType Type
+    public NuzlonType Type
     {
         get { return type; }
     }
@@ -40,5 +42,10 @@ public class BaseMove : ScriptableObject
     public int PP
     {
         get { return pp; }
+    }
+
+    public bool IsRanged
+    {
+        get { return isRanged; }
     }
 }

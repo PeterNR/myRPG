@@ -18,3 +18,4 @@ MonoBehaviour:
   power: 20
   accuracy: 100
   pp: 25
+  isRanged: 1

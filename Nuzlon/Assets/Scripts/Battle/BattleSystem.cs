@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -13,29 +14,49 @@ public class BattleSystem : MonoBehaviour
     private BattleHud _playerHUD, _enemyHUD;
     [SerializeField]
     BattleDialogueBox _dialogueBox;
+    [SerializeField]
+    private PartyScreen _partyScreen;
 
+    public event Action<bool> OnBattleOver;
+
+    NuzlonParty _playerParty;
+    Nuzlon _wildNuzlon;
 
     private int _currentActionIndex, _currentMoveIndex;
-
     private BattleState state;
-
     private bool _pressedBtn = false;
 
-    private void Start()
+    public void StartBattle(NuzlonParty playerParty, Nuzlon wildNuzlon)
     {
+        _playerParty = playerParty;
+        _wildNuzlon = wildNuzlon;
         StartCoroutine(SetupBattle());
+    }
+
+    public void HandleUpdate()
+    {
+        if (state == BattleState.PlayerAction)
+        {
+            HandleActionSelection();
+        }
+        else if (state == BattleState.PlayerMove)
+        {
+            HandleMoveSelection();
+        }
     }
 
     public IEnumerator SetupBattle()
     {
-        _playerUnit.Setup();
-        _playerHUD.SetHUD(_playerUnit.BattleCreature);
-        _enemyUnit.Setup();
-        _enemyHUD.SetHUD(_enemyUnit.BattleCreature);
+        _playerUnit.Setup(_playerParty.GetHealthyNuzlon());
+        _playerHUD.SetHUD(_playerUnit.BattleNuzlon);
+        _enemyUnit.Setup(_wildNuzlon);
+        _enemyHUD.SetHUD(_enemyUnit.BattleNuzlon);
 
-        _dialogueBox.SetMoveNames(_playerUnit.BattleCreature.Moves);
+        _partyScreen.Initialize();
 
-         yield return _dialogueBox.TypeDialogue($"A wild {_enemyUnit.BattleCreature.Base.name} appeared.");
+        _dialogueBox.SetMoveNames(_playerUnit.BattleNuzlon.Moves);
+
+         yield return _dialogueBox.TypeDialogue($"A wild {_enemyUnit.BattleNuzlon.Base.name} appeared.");
 
         PlayerAction();
     }
@@ -43,8 +64,14 @@ public class BattleSystem : MonoBehaviour
     private void PlayerAction()
     {
         state = BattleState.PlayerAction;
-        StartCoroutine(_dialogueBox.TypeDialogue("Choose an action"));
+       _dialogueBox.SetDialogue(("Choose an action"));
         _dialogueBox.EnableActionSelector(true);
+    }
+
+    private void OpenPartyScreen()
+    {
+        _partyScreen.SetPartyData(_playerParty.NuzlonList);
+        _partyScreen.gameObject.SetActive(true);
     }
 
     private void PlayerMove()
@@ -58,22 +85,26 @@ public class BattleSystem : MonoBehaviour
     private IEnumerator PerformPlayerMove()
     {
         state = BattleState.Busy;
-        Move move = _playerUnit.BattleCreature.Moves[_currentMoveIndex];
-        yield return _dialogueBox.TypeDialogue($"{_playerUnit.BattleCreature.Base.Name } used {move.Base.Name}");
+        Move move = _playerUnit.BattleNuzlon.Moves[_currentMoveIndex];
+        move.PP--;
+        yield return _dialogueBox.TypeDialogue($"{_playerUnit.BattleNuzlon.Base.Name } used {move.Base.Name}");
 
         _playerUnit.PlayAttackAnimation();
         yield return new WaitForSeconds(1f);
 
         _enemyUnit.PlayHitAnimation();
 
-        DamageDetails damageDetails = _enemyUnit.BattleCreature.TakeDamage(move, _playerUnit.BattleCreature);
+        DamageDetails damageDetails = _enemyUnit.BattleNuzlon.TakeDamage(move, _playerUnit.BattleNuzlon);
         yield return _enemyHUD.UpdateHP();
         yield return ShowDamageDetails(damageDetails);
 
         if (damageDetails.Fainted)
         {
-            yield return _dialogueBox.TypeDialogue($"{_enemyUnit.BattleCreature.Base.Name} fainted");
+            yield return _dialogueBox.TypeDialogue($"{_enemyUnit.BattleNuzlon.Base.Name} fainted");
             _enemyUnit.PlayFaintAnimation();
+
+            yield return new WaitForSeconds(2f);
+            OnBattleOver(true);
         }
         else
         {
@@ -85,23 +116,43 @@ public class BattleSystem : MonoBehaviour
     {
         state = BattleState.EnemyMove;
 
-        Move move = _enemyUnit.BattleCreature.GetRandomMove();
+        Move move = _enemyUnit.BattleNuzlon.GetRandomMove();
+        move.PP--;
 
-        yield return _dialogueBox.TypeDialogue($"{_enemyUnit.BattleCreature.Base.Name } used {move.Base.Name}");
+        yield return _dialogueBox.TypeDialogue($"{_enemyUnit.BattleNuzlon.Base.Name } used {move.Base.Name}");
 
         _enemyUnit.PlayAttackAnimation();
         new WaitForSeconds(1f);
 
         _playerUnit.PlayHitAnimation();
 
-        DamageDetails damageDetails = _playerUnit.BattleCreature.TakeDamage(move, _enemyUnit.BattleCreature);
+        DamageDetails damageDetails = _playerUnit.BattleNuzlon.TakeDamage(move, _enemyUnit.BattleNuzlon);
         yield return _playerHUD.UpdateHP();
         yield return ShowDamageDetails(damageDetails);
 
         if (damageDetails.Fainted)
         {
-            yield return _dialogueBox.TypeDialogue($"{_playerUnit.BattleCreature.Base.Name} fainted");
+            yield return _dialogueBox.TypeDialogue($"{_playerUnit.BattleNuzlon.Base.Name} fainted");
             _playerUnit.PlayFaintAnimation();
+
+            yield return new WaitForSeconds(2f);
+
+            Nuzlon nextNuzlon = _playerParty.GetHealthyNuzlon();
+            if(nextNuzlon!=null)
+            {
+                _playerUnit.Setup(_playerParty.GetHealthyNuzlon());
+                _playerHUD.SetHUD(_playerUnit.BattleNuzlon);
+
+                _dialogueBox.SetMoveNames(_playerUnit.BattleNuzlon.Moves);
+
+                yield return _dialogueBox.TypeDialogue($"Go {_playerUnit.BattleNuzlon.Base.name}!");
+
+                PlayerAction();
+            }
+            else
+            {
+                OnBattleOver(false);
+            }
         }
         else
         {
@@ -123,44 +174,69 @@ public class BattleSystem : MonoBehaviour
         }
     }
 
-    private void Update()
-    {
-        if(state == BattleState.PlayerAction)
-        {
-            HandleActionSelection();
-        }
-        else if (state == BattleState.PlayerMove)
-        {
-            HandleMoveSelection();
-        }
-    }
+
 
     //weird way of choosing actions in battle
     private void HandleActionSelection()
     {
-        if(Input.GetAxisRaw("Vertical")<0)
+        if (!_pressedBtn)
         {
-            if(_currentActionIndex < 1)
+            if (Input.GetAxisRaw("Horizontal") > 0)
             {
-                _currentActionIndex++;
+                //if (_currentActionIndex < 3)
+                {
+                    _currentActionIndex++;
+                    _pressedBtn = true;
+                }
             }
-        }else if (Input.GetAxisRaw("Vertical") > 0)
-        {
-            if (_currentActionIndex > 0)
+            else if (Input.GetAxisRaw("Horizontal") < 0)
             {
-                _currentActionIndex--;
+                //if (_currentActionIndex > 0)
+                {
+                    _currentActionIndex--;
+                    _pressedBtn = true;
+                }
             }
+            else if (Input.GetAxisRaw("Vertical") < 0)
+            {
+                //if (_currentActionIndex < 2)
+                {
+                    _currentActionIndex += 2;
+                    _pressedBtn = true;
+                }
+            }
+            else if (Input.GetAxisRaw("Vertical") > 0)
+            {
+                //if (_currentActionIndex > 1)
+                {
+                    _currentActionIndex -= 2;
+                    _pressedBtn = true;
+                }
+            }
+            _currentActionIndex = Mathf.Clamp(_currentActionIndex, 0, 3);
         }
 
-        _dialogueBox.UpdateActionSelection(_currentActionIndex);
+            _dialogueBox.UpdateActionSelection(_currentActionIndex);
 
-        if(Input.GetButtonDown("Jump"))
+        if (Input.GetAxisRaw("Vertical") == 0 && Input.GetAxisRaw("Horizontal") == 0)
+        {
+            _pressedBtn = false;
+        }
+
+        if (Input.GetButtonDown("Jump"))
         {
             if(_currentActionIndex == 0)
             {
                 //fight
                 PlayerMove();
             }else if(_currentActionIndex == 1)
+            {
+                //bag
+            }else if(_currentActionIndex == 2)
+            {
+                //party
+                OpenPartyScreen();
+            }else if(_currentActionIndex == 3)
             {
                 //run
             }
@@ -173,7 +249,7 @@ public class BattleSystem : MonoBehaviour
         {
             if (Input.GetAxisRaw("Horizontal") > 0)
             {
-                if (_currentMoveIndex < _playerUnit.BattleCreature.Moves.Count - 1)
+                if (_currentMoveIndex < _playerUnit.BattleNuzlon.Moves.Count - 1)
                 {
                     _currentMoveIndex++;
                     _pressedBtn = true;
@@ -189,7 +265,7 @@ public class BattleSystem : MonoBehaviour
             }
             else if (Input.GetAxisRaw("Vertical") < 0)
             {
-                if (_currentMoveIndex < _playerUnit.BattleCreature.Moves.Count - 2)
+                if (_currentMoveIndex < _playerUnit.BattleNuzlon.Moves.Count - 2)
                 {
                     _currentMoveIndex += 2;
                     _pressedBtn = true;
@@ -203,7 +279,7 @@ public class BattleSystem : MonoBehaviour
                     _pressedBtn = true;
                 }
             }
-            _dialogueBox.UpdateMoveSelection(_currentMoveIndex, _playerUnit.BattleCreature.Moves[_currentMoveIndex]);
+            _dialogueBox.UpdateMoveSelection(_currentMoveIndex, _playerUnit.BattleNuzlon.Moves[_currentMoveIndex]);
         }
 
         if(Input.GetAxisRaw("Vertical") ==0 && Input.GetAxisRaw("Horizontal") == 0)
@@ -216,6 +292,11 @@ public class BattleSystem : MonoBehaviour
             _dialogueBox.EnableMoveSelector(false);
             _dialogueBox.EnableDialogueText(true);
             StartCoroutine(PerformPlayerMove());
+        }else if(Input.GetButtonDown("Fire1"))
+        {
+            _dialogueBox.EnableMoveSelector(false);
+            _dialogueBox.EnableDialogueText(true);
+            PlayerAction();
         }
 
     }

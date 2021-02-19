@@ -6,14 +6,11 @@ using DG.Tweening;
 
 public class BattleUnit : MonoBehaviour
 {
-    [SerializeField]
-    private BaseCreature _base;
-    [SerializeField]
-    private int _level;
+
     [SerializeField]
     private bool _isPlayerUnit;
 
-    public Creature BattleCreature { get; set; }
+    public Nuzlon BattleNuzlon { get; set; }
 
     private Image _image;
     private Vector3 _originalPos;
@@ -26,18 +23,18 @@ public class BattleUnit : MonoBehaviour
         _originalColor = _image.color;
     }
 
-    public void Setup()
+    public void Setup(Nuzlon nuzlon)
     {
-        BattleCreature = new Creature(_base, _level);
+        BattleNuzlon = nuzlon;
         if(_isPlayerUnit)
         {
-            _image.sprite = BattleCreature.Base.BackSprite;
+            _image.sprite = BattleNuzlon.Base.BackSprite;
         }
         else
         {
-            _image.sprite = BattleCreature.Base.FrontSprite;
+            _image.sprite = BattleNuzlon.Base.FrontSprite;
         }
-
+        _image.color = _originalColor;
         PlayEnterAnimation();
     }
 

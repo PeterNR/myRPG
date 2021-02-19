@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -8,6 +9,8 @@ public class PlayerController : MonoBehaviour
     private float _moveSpeed, _encounterRate;
     [SerializeField]
     private LayerMask _solidObjectLayer, _encounterLayer;
+
+    public event Action OnEncounter;
 
     private bool _isMoving;
     private Vector2 _input;
@@ -19,7 +22,7 @@ public class PlayerController : MonoBehaviour
         _animator = GetComponentInChildren<Animator>();
     }
 
-    private void Update()
+    public void HandleUpdate()
     {
         if(!_isMoving)
         {
@@ -80,9 +83,10 @@ public class PlayerController : MonoBehaviour
     {
         if (Physics2D.OverlapCircle(transform.position, 0.3f, _encounterLayer)!=null)
         {
-            if(Random.Range(0,100)<_encounterRate)
+            if(UnityEngine.Random.Range(0,100)<_encounterRate)
             {
-                Debug.Log("RANDOM ENCOUNTER");
+                _animator.SetBool("IsMoving", false);
+                OnEncounter();
             }
         }
     }

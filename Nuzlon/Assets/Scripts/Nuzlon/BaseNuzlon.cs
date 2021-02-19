@@ -5,9 +5,9 @@ using UnityEngine;
 
 
 
-[CreateAssetMenu(fileName = "Nuzlon", menuName = "Nuzlon/Create new creature")]
+[CreateAssetMenu(fileName = "Nuzlon", menuName = "Nuzlon/Create new nuzlon")]
 
-public class BaseCreature : ScriptableObject
+public class BaseNuzlon : ScriptableObject
 {
     [SerializeField]
     private string name;
@@ -22,7 +22,7 @@ public class BaseCreature : ScriptableObject
     private int speed, maxHp, attack, defense, specialAttack, specialDefense;
 
     [SerializeField]
-    CreatureType type1, type2;
+    NuzlonType type1, type2;
     [SerializeField]
     private List<LearnableMove> learnableMoves = new List<LearnableMove>();
 
@@ -68,11 +68,11 @@ public class BaseCreature : ScriptableObject
     {
         get { return specialDefense; }
     }
-    public CreatureType Type1
+    public NuzlonType Type1
     {
         get { return type1; }
     }
-    public CreatureType Type2
+    public NuzlonType Type2
     {
         get { return type2; }
     }
@@ -100,7 +100,7 @@ public class LearnableMove
     }
 }
 
-public enum CreatureType
+public enum NuzlonType
 {
     none,
     Fire,
@@ -125,9 +125,9 @@ public class TypeChart
 
     };
 
-    public static float GetEffectiveness (CreatureType attackType, CreatureType defenseType)
+    public static float GetEffectiveness (NuzlonType attackType, NuzlonType defenseType)
     {
-        if(attackType == CreatureType.none || defenseType == CreatureType.none)
+        if(attackType == NuzlonType.none || defenseType == NuzlonType.none)
         {
             return 1f;
         }
