@@ -8,17 +8,32 @@ public class PartyMemberUI : MonoBehaviour
     [SerializeField]
     private Text _nameText, _levelText;
     [SerializeField]
-    private HPBar hpBar;
-    //public Slider HpSlider;
+    private HPBar _hpBar;
+
+    [SerializeField]
+    private Color _highlightedColor, _regularColor;
+
 
     Nuzlon _nuzlon;
 
-    public void SetHUD(Nuzlon nuzlon)
+    public void SetPartyHUD(Nuzlon nuzlon)
     {
         _nuzlon = nuzlon;
 
         _nameText.text = nuzlon.Base.Name;
         _levelText.text = "Lvl " + nuzlon.Level;
-        hpBar.SetHP((float)nuzlon.CurrentHP / nuzlon.MaxHp);
+        _hpBar.SetHP((float)nuzlon.CurrentHP / nuzlon.MaxHp);
+    }
+
+    public void SetSelected(bool isSelected)
+    {
+        if (isSelected)
+        {
+            _nameText.color = _highlightedColor;
+        }
+        else
+        {
+            _nameText.color = _regularColor;
+        }
     }
 }

@@ -4,14 +4,12 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public enum BattleState { Start, PlayerAction, PlayerMove, EnemyMove, Busy }
+public enum BattleState { Start, ActionSelection, MoveSelection, PerformMove, Busy, PartyScreen, BattleOver }
 
 public class BattleSystem : MonoBehaviour
 {
     [SerializeField]
     private BattleUnit _playerUnit, _enemyUnit;
-    [SerializeField]
-    private BattleHud _playerHUD, _enemyHUD;
     [SerializeField]
     BattleDialogueBox _dialogueBox;
     [SerializeField]
@@ -22,7 +20,7 @@ public class BattleSystem : MonoBehaviour
     NuzlonParty _playerParty;
     Nuzlon _wildNuzlon;
 
-    private int _currentActionIndex, _currentMoveIndex;
+    private int _currentActionIndex, _currentMoveIndex, _currentPartyMemberIndex;
     private BattleState state;
     private bool _pressedBtn = false;
 
@@ -35,22 +33,24 @@ public class BattleSystem : MonoBehaviour
 
     public void HandleUpdate()
     {
-        if (state == BattleState.PlayerAction)
+        if (state == BattleState.ActionSelection)
         {
             HandleActionSelection();
         }
-        else if (state == BattleState.PlayerMove)
+        else if (state == BattleState.MoveSelection)
         {
             HandleMoveSelection();
+        }
+        else if (state == BattleState.PartyScreen)
+        {
+            HandlePartySelection();
         }
     }
 
     public IEnumerator SetupBattle()
     {
         _playerUnit.Setup(_playerParty.GetHealthyNuzlon());
-        _playerHUD.SetHUD(_playerUnit.BattleNuzlon);
         _enemyUnit.Setup(_wildNuzlon);
-        _enemyHUD.SetHUD(_enemyUnit.BattleNuzlon);
 
         _partyScreen.Initialize();
 
@@ -58,55 +58,45 @@ public class BattleSystem : MonoBehaviour
 
          yield return _dialogueBox.TypeDialogue($"A wild {_enemyUnit.BattleNuzlon.Base.name} appeared.");
 
-        PlayerAction();
+        ActionSelection();
     }
 
-    private void PlayerAction()
+    private void BattleOver(bool victory)
     {
-        state = BattleState.PlayerAction;
+        state = BattleState.BattleOver;
+        OnBattleOver(victory);
+    }
+
+    private void ActionSelection()
+    {
+        state = BattleState.ActionSelection;
        _dialogueBox.SetDialogue(("Choose an action"));
         _dialogueBox.EnableActionSelector(true);
     }
 
     private void OpenPartyScreen()
     {
+        state = BattleState.PartyScreen;
         _partyScreen.SetPartyData(_playerParty.NuzlonList);
         _partyScreen.gameObject.SetActive(true);
     }
 
-    private void PlayerMove()
+    private void MoveSelection()
     {
-        state = BattleState.PlayerMove;
+        state = BattleState.MoveSelection;
         _dialogueBox.EnableActionSelector(false);
         _dialogueBox.EnableDialogueText(false);
         _dialogueBox.EnableMoveSelector(true);
     }
 
-    private IEnumerator PerformPlayerMove()
+    private IEnumerator PlayerMove()
     {
-        state = BattleState.Busy;
+        state = BattleState.PerformMove;
+
         Move move = _playerUnit.BattleNuzlon.Moves[_currentMoveIndex];
-        move.PP--;
-        yield return _dialogueBox.TypeDialogue($"{_playerUnit.BattleNuzlon.Base.Name } used {move.Base.Name}");
+        yield return RunMove(_playerUnit, _enemyUnit, move);
 
-        _playerUnit.PlayAttackAnimation();
-        yield return new WaitForSeconds(1f);
-
-        _enemyUnit.PlayHitAnimation();
-
-        DamageDetails damageDetails = _enemyUnit.BattleNuzlon.TakeDamage(move, _playerUnit.BattleNuzlon);
-        yield return _enemyHUD.UpdateHP();
-        yield return ShowDamageDetails(damageDetails);
-
-        if (damageDetails.Fainted)
-        {
-            yield return _dialogueBox.TypeDialogue($"{_enemyUnit.BattleNuzlon.Base.Name} fainted");
-            _enemyUnit.PlayFaintAnimation();
-
-            yield return new WaitForSeconds(2f);
-            OnBattleOver(true);
-        }
-        else
+        if(state == BattleState.PerformMove)
         {
             StartCoroutine(EnemyMove());
         }
@@ -114,49 +104,59 @@ public class BattleSystem : MonoBehaviour
 
     private IEnumerator EnemyMove()
     {
-        state = BattleState.EnemyMove;
+        state = BattleState.PerformMove;
 
         Move move = _enemyUnit.BattleNuzlon.GetRandomMove();
+        yield return RunMove(_enemyUnit, _playerUnit, move);
+
+        if (state == BattleState.PerformMove)
+        {
+            ActionSelection();
+        }
+    }
+
+    IEnumerator RunMove(BattleUnit sourceUnit, BattleUnit targetUnit, Move move)
+    {
         move.PP--;
+        yield return _dialogueBox.TypeDialogue($"{sourceUnit.BattleNuzlon.Base.Name } used {move.Base.Name}");
 
-        yield return _dialogueBox.TypeDialogue($"{_enemyUnit.BattleNuzlon.Base.Name } used {move.Base.Name}");
+        sourceUnit.PlayAttackAnimation();
+        yield return new WaitForSeconds(1f);
 
-        _enemyUnit.PlayAttackAnimation();
-        new WaitForSeconds(1f);
+        targetUnit.PlayHitAnimation();
 
-        _playerUnit.PlayHitAnimation();
-
-        DamageDetails damageDetails = _playerUnit.BattleNuzlon.TakeDamage(move, _enemyUnit.BattleNuzlon);
-        yield return _playerHUD.UpdateHP();
+        DamageDetails damageDetails = targetUnit.BattleNuzlon.TakeDamage(move, sourceUnit.BattleNuzlon);
+        yield return targetUnit.Hud.UpdateHP();
         yield return ShowDamageDetails(damageDetails);
 
         if (damageDetails.Fainted)
         {
-            yield return _dialogueBox.TypeDialogue($"{_playerUnit.BattleNuzlon.Base.Name} fainted");
-            _playerUnit.PlayFaintAnimation();
+            yield return _dialogueBox.TypeDialogue($"{targetUnit.BattleNuzlon.Base.Name} fainted");
+            targetUnit.PlayFaintAnimation();
 
             yield return new WaitForSeconds(2f);
 
+            CheckForBattleOver(targetUnit);
+        }
+    }
+
+    private void CheckForBattleOver (BattleUnit faintedUnit)
+    {
+        if (faintedUnit.IsPlayerUnit)
+        {
             Nuzlon nextNuzlon = _playerParty.GetHealthyNuzlon();
-            if(nextNuzlon!=null)
+            if (nextNuzlon != null)
             {
-                _playerUnit.Setup(_playerParty.GetHealthyNuzlon());
-                _playerHUD.SetHUD(_playerUnit.BattleNuzlon);
-
-                _dialogueBox.SetMoveNames(_playerUnit.BattleNuzlon.Moves);
-
-                yield return _dialogueBox.TypeDialogue($"Go {_playerUnit.BattleNuzlon.Base.name}!");
-
-                PlayerAction();
+                OpenPartyScreen();
             }
             else
             {
-                OnBattleOver(false);
+                BattleOver(false);
             }
         }
         else
         {
-            PlayerAction();
+            BattleOver(true);
         }
     }
 
@@ -228,7 +228,7 @@ public class BattleSystem : MonoBehaviour
             if(_currentActionIndex == 0)
             {
                 //fight
-                PlayerMove();
+                MoveSelection();
             }else if(_currentActionIndex == 1)
             {
                 //bag
@@ -291,13 +291,107 @@ public class BattleSystem : MonoBehaviour
         {
             _dialogueBox.EnableMoveSelector(false);
             _dialogueBox.EnableDialogueText(true);
-            StartCoroutine(PerformPlayerMove());
+            StartCoroutine(PlayerMove());
         }else if(Input.GetButtonDown("Fire1"))
         {
             _dialogueBox.EnableMoveSelector(false);
             _dialogueBox.EnableDialogueText(true);
-            PlayerAction();
+            ActionSelection();
         }
 
+    }
+
+    private void HandlePartySelection()
+    {
+        if (!_pressedBtn)
+        {
+            if (Input.GetAxisRaw("Horizontal") > 0)
+            {
+                if (_currentPartyMemberIndex < _playerParty.NuzlonList.Count - 1)
+                {
+                    _currentPartyMemberIndex++;
+                    _pressedBtn = true;
+                }
+            }
+            else if (Input.GetAxisRaw("Horizontal") < 0)
+            {
+                if (_currentPartyMemberIndex > 0)
+                {
+                    _currentPartyMemberIndex--;
+                    _pressedBtn = true;
+                }
+            }
+            else if (Input.GetAxisRaw("Vertical") < 0)
+            {
+                if (_currentPartyMemberIndex < _playerParty.NuzlonList.Count - 2)
+                {
+                    _currentPartyMemberIndex += 2;
+                    _pressedBtn = true;
+                }
+            }
+            else if (Input.GetAxisRaw("Vertical") > 0)
+            {
+                if (_currentPartyMemberIndex > 1)
+                {
+                    _currentPartyMemberIndex -= 2;
+                    _pressedBtn = true;
+                }
+            }
+
+            _partyScreen.UpdateMemberSelection(_currentPartyMemberIndex);
+        }
+
+        if (Input.GetAxisRaw("Vertical") == 0 && Input.GetAxisRaw("Horizontal") == 0)
+        {
+            _pressedBtn = false;
+        }
+
+        if (Input.GetButtonDown("Jump"))
+        {
+            Nuzlon selectedMember = _playerParty.NuzlonList[_currentPartyMemberIndex];
+            if(selectedMember.CurrentHP <=0)
+            {
+                _partyScreen.SetMessageText("You can't send out a fainted Nuzlon");
+                return;
+            }
+            if(selectedMember == _playerUnit.BattleNuzlon)
+            {
+                _partyScreen.SetMessageText("That Nuzlon is already out");
+                return;
+            }
+
+            //_dialogueBox.EnableMoveSelector(false);
+            //_dialogueBox.EnableDialogueText(true);
+            _partyScreen.gameObject.SetActive(false);
+            state = BattleState.Busy;
+            StartCoroutine(SwitchNuzlon(selectedMember));
+        }
+        else if (Input.GetButtonDown("Fire1"))
+        {
+            if (_playerUnit.BattleNuzlon.CurrentHP <= 0)
+            {
+                return;
+            }
+            _partyScreen.gameObject.SetActive(false);
+            ActionSelection();
+        }
+    }
+
+    IEnumerator SwitchNuzlon(Nuzlon newNuzlon)
+    {
+        if(_playerUnit.BattleNuzlon.CurrentHP>0)
+        {
+            yield return _dialogueBox.TypeDialogue($"Comeback {_playerUnit.BattleNuzlon.Base.name}!");
+            _playerUnit.PlayFaintAnimation();
+            yield return new WaitForSeconds(2f);
+        }
+
+        _playerUnit.Setup(newNuzlon);
+
+        _dialogueBox.SetMoveNames(newNuzlon.Moves);
+
+        yield return _dialogueBox.TypeDialogue($"Go {newNuzlon.Base.name}!");
+
+        StartCoroutine(EnemyMove());
     }
 }

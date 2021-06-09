@@ -413,7 +413,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _nameText: {fileID: 3258498346033823475}
   _levelText: {fileID: 621112318266244534}
-  hpBar: {fileID: 3878994229127497586}
+  _hpBar: {fileID: 3878994229127497586}
+  _highlightedColor: {r: 0.90588236, g: 0.4862745, b: 0.08235294, a: 1}
+  _regularColor: {r: 0, g: 0, b: 0, a: 1}
 --- !u!1 &7085075678287204476
 GameObject:
   m_ObjectHideFlags: 0

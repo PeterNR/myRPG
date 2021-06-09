@@ -9,6 +9,17 @@ public class BattleUnit : MonoBehaviour
 
     [SerializeField]
     private bool _isPlayerUnit;
+    public bool IsPlayerUnit
+    {
+        get { return _isPlayerUnit; }
+    }
+
+    [SerializeField]
+    private BattleHud _hud;
+    public BattleHud Hud
+    {
+        get { return _hud; }
+    }
 
     public Nuzlon BattleNuzlon { get; set; }
 
@@ -34,6 +45,9 @@ public class BattleUnit : MonoBehaviour
         {
             _image.sprite = BattleNuzlon.Base.FrontSprite;
         }
+
+        _hud.SetHUD(nuzlon);
+
         _image.color = _originalColor;
         PlayEnterAnimation();
     }

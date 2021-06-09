@@ -24,4 +24,6 @@ MonoBehaviour:
   specialDefense: 55
   type1: 6
   type2: 0
-  learnableMoves: []
+  learnableMoves:
+  - baseMove: {fileID: 11400000, guid: df0ea01b32589164bbe3d12b4eaf832c, type: 2}
+    level: 1
